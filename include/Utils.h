@@ -9,7 +9,7 @@ namespace Utils {
     constexpr auto po3path = "Data/SKSE/Plugins/po3_Tweaks.dll";
     inline bool IsPo3Installed() { return std::filesystem::exists(po3path); };
     const auto po3_err_msgbox = std::format(
-        "{}: If you are trying to use Editor IDs, but you must have powerofthree's Tweaks "
+        "{}: You must have powerofthree's Tweaks "
         "installed. See mod page for further instructions.",
         mod_name);
 
