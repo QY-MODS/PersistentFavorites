@@ -1,27 +1,17 @@
 
 #include "Serialization.h"
-#include "Utils.h"
 
-template <typename T, typename U>
-float BaseData<T, U>::GetData(T formId, T missing) {
-    Locker locker(m_Lock);
-    if (auto idx = m_Data.find(formId) != m_Data.end()) {
-        return m_Data[formId];
-    }
-    return missing;
-}
 
-template <typename T, typename U>
-void BaseData<T, U>::SetData(T formId, U value) {
+void BaseData<SaveDataLHS, SaveDataRHS>::SetData(SaveDataLHS formId, SaveDataRHS value) {
     Locker locker(m_Lock);
     m_Data[formId] = value;
 }
-template <typename T, typename U>
-void BaseData<T, U>::Clear() {
+
+
+void BaseData<SaveDataLHS, SaveDataRHS>::Clear() {
     Locker locker(m_Lock);
     m_Data.clear();
-};
-
+}
 
 [[nodiscard]] bool SaveLoadData::Save(SKSE::SerializationInterface* serializationInterface) {
     assert(serializationInterface);
@@ -92,3 +82,4 @@ void BaseData<T, U>::Clear() {
 
     return true;
 }
+

@@ -1,3 +1,5 @@
+
+#pragma once
 #include "Utils.h"
 
 
@@ -10,7 +12,6 @@ template <typename T, typename U>
 // BaseData is based off how powerof3's did it in Afterlife
 class BaseData {
 public:
-    float GetData(T formId, T missing);
 
     void SetData(T formId, U value);
 
@@ -44,4 +45,12 @@ public:
                             std::uint32_t version) override;
 
     [[nodiscard]] bool Load(SKSE::SerializationInterface* serializationInterface) override;
+
 };
+
+void SaveCallback(SKSE::SerializationInterface* serializationInterface);
+
+void LoadCallback(SKSE::SerializationInterface* serializationInterface);
+
+
+void InitializeSerialization();

@@ -1,11 +1,16 @@
 #pragma once
 
-class myEventSink : public RE::BSTEventSink<RE::InputEvent*> {
+#include "Manager.h"
+
+class myEventSink : public RE::BSTEventSink<RE::TESContainerChangedEvent>, 
+                    public RE::BSTEventSink<RE::InputEvent*> {
     myEventSink() = default;
     myEventSink(const myEventSink&) = delete;
     myEventSink(myEventSink&&) = delete;
     myEventSink& operator=(const myEventSink&) = delete;
     myEventSink& operator=(myEventSink&&) = delete;
+
+    Manager* M = Manager::GetSingleton();
 
 public:
 
@@ -15,5 +20,12 @@ public:
     }
 
     RE::BSEventNotifyControl ProcessEvent(RE::InputEvent* const* evns, RE::BSTEventSource<RE::InputEvent*>*);
+
+    RE::BSEventNotifyControl ProcessEvent(const RE::TESContainerChangedEvent* event,
+                                          RE::BSTEventSource<RE::TESContainerChangedEvent>*);
+
+    void SaveCallback(SKSE::SerializationInterface* serializationInterface);
+
+    void LoadCallback(SKSE::SerializationInterface* serializationInterface);
 
 };

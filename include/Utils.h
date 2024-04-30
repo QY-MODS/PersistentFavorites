@@ -38,7 +38,15 @@ namespace Utils {
         RE::TESForm* GetFormByID(const FormID id, const std::string& editor_id = "");
 
         template <class T>
-        static T* GetFormByID(const FormID id, const std::string& editor_id = "");
+        static T* GetFormByID(const FormID id, const std::string& editor_id = "") {
+            if (!editor_id.empty()) {
+                auto* form = RE::TESForm::LookupByEditorID<T>(editor_id);
+                if (form) return form;
+            }
+            T* form = RE::TESForm::LookupByID<T>(id);
+            if (form) return form;
+            return nullptr;
+        };
 
         const std::string GetEditorID(const FormID a_formid);
 
@@ -64,7 +72,7 @@ namespace Utils {
         };
     
     };
-
+    
     bool read_string(SKSE::SerializationInterface* a_intfc, std::string& a_str);
 
     bool write_string(SKSE::SerializationInterface* a_intfc, const std::string& a_str);

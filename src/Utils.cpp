@@ -73,23 +73,10 @@ namespace Utils {
             return nullptr;
         };
 
-        template <class T>
-        static T* GetFormByID(const FormID id, const std::string& editor_id) {
-            if (!editor_id.empty()) {
-                auto* form = RE::TESForm::LookupByEditorID<T>(editor_id);
-                if (form) return form;
-            }
-            T* form = RE::TESForm::LookupByID<T>(id);
-            if (form) return form;
-            return nullptr;
-        };
-
         const std::string GetEditorID(const FormID a_formid) {
             if (const auto form = RE::TESForm::LookupByID(a_formid)) {
                 return clib_util::editorID::get_editorID(form);
-            } else {
-                return "";
-            }
+            } else return "";
         }
 
         namespace Inventory {
@@ -144,7 +131,7 @@ namespace Utils {
                         logger::trace("asdasd");
                         if (no_extra_) {
                             logger::trace("No extraLists");
-                            // inventory_changes->SetFavorite((*it), nullptr);
+                             inventory_changes->SetFavorite((*it), nullptr);
                         } else if (xLists->front()) {
                             logger::trace("ExtraLists found");
                             inventory_changes->SetFavorite((*it), xLists->front());
