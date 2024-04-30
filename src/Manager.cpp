@@ -8,6 +8,7 @@ void Manager::UpdateFavorites() {
     const auto player_inventory = RE::PlayerCharacter::GetSingleton()->GetInventory();
     for (auto& item : player_inventory) {
         if (!item.first) continue;
+        if (item.second.first <= 0) continue;
         if (std::strlen(item.first->GetName()) == 0) continue;
         if (!item.second.second) continue;
         if (item.second.second->IsFavorited()) {
