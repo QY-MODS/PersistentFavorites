@@ -13,7 +13,7 @@ RE::BSEventNotifyControl myEventSink::ProcessEvent(RE::InputEvent* const* evns, 
         const auto userevents = RE::UserEvents::GetSingleton();
         if (userEvent != userevents->toggleFavorite && userEvent != userevents->yButton) continue;
         logger::trace("User event: {}", userEvent.c_str());
-        M->UpdateFavorites();
+        M->SyncFavorites();
         return RE::BSEventNotifyControl::kContinue;
     }
     return RE::BSEventNotifyControl::kContinue;
@@ -24,6 +24,17 @@ RE::BSEventNotifyControl myEventSink::ProcessEvent(const RE::TESContainerChanged
     if (!event) return RE::BSEventNotifyControl::kContinue;
     if (event->newContainer!=player_refid) return RE::BSEventNotifyControl::kContinue;
     M->FavoriteCheck(event->baseObj);
+    return RE::BSEventNotifyControl::kContinue;
+}
+
+RE::BSEventNotifyControl myEventSink::ProcessEvent(const RE::MenuOpenCloseEvent* event,
+                                                   RE::BSTEventSource<RE::MenuOpenCloseEvent>*) {
+    if (!event) return RE::BSEventNotifyControl::kContinue;
+    if (event->menuName != RE::FavoritesMenu::MENU_NAME &&
+        event->menuName != RE::InventoryMenu::MENU_NAME &&
+        event->menuName != RE::ContainerMenu::MENU_NAME)
+        return RE::BSEventNotifyControl::kContinue;
+    M->AddFavorites();
     return RE::BSEventNotifyControl::kContinue;
 }
 

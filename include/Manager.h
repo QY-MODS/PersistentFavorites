@@ -20,7 +20,9 @@ public:
     
     const char* GetType() override { return "Manager"; }
 
-    void UpdateFavorites();
+    void AddFavorites();
+
+    void SyncFavorites();
 
     void FavoriteCheck(const FormID formid);
 

@@ -107,6 +107,10 @@ namespace Utils {
                 if (!item) return;
                 if (!inventory_owner) return;
                 auto inventory_changes = inventory_owner->GetInventoryChanges();
+                if (!inventory_changes) {
+					logger::error("Inventory changes is null");
+					return;
+				}
                 auto entries = inventory_changes->entryList;
                 for (auto it = entries->begin(); it != entries->end(); ++it) {
                     if (!(*it)) {

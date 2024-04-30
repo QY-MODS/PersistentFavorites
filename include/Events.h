@@ -2,7 +2,8 @@
 
 #include "Manager.h"
 
-class myEventSink : public RE::BSTEventSink<RE::TESContainerChangedEvent>, 
+class myEventSink : public RE::BSTEventSink<RE::MenuOpenCloseEvent>,
+                    public RE::BSTEventSink<RE::TESContainerChangedEvent>, 
                     public RE::BSTEventSink<RE::InputEvent*> {
     myEventSink() = default;
     myEventSink(const myEventSink&) = delete;
@@ -23,6 +24,9 @@ public:
 
     RE::BSEventNotifyControl ProcessEvent(const RE::TESContainerChangedEvent* event,
                                           RE::BSTEventSource<RE::TESContainerChangedEvent>*);
+
+    RE::BSEventNotifyControl ProcessEvent(const RE::MenuOpenCloseEvent* event,
+                                          RE::BSTEventSource<RE::MenuOpenCloseEvent>*);
 
     void SaveCallback(SKSE::SerializationInterface* serializationInterface);
 

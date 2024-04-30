@@ -3,7 +3,28 @@
 #include "Serialization.h"
 
 
-void Manager::UpdateFavorites() {
+void Manager::AddFavorites() {
+    ENABLE_IF_NOT_UNINSTALLED
+    const auto player = RE::PlayerCharacter::GetSingleton();
+    const auto player_inventory = player->GetInventory();
+    for (auto& item : player_inventory) {
+        if (!item.first) continue;
+        if (item.second.first <= 0) continue;
+        if (std::strlen(item.first->GetName()) == 0) continue;
+        if (!item.second.second) continue;
+        if (item.second.second->IsFavorited()) {
+            if (favorites.insert(item.first->GetFormID()).second) {
+                logger::trace("Item favorited. FormID: {:x}, EditorID: {}", item.first->GetFormID(),
+                              clib_util::editorID::get_editorID(item.first));
+            }
+        }
+        else if (favorites.contains(item.first->GetFormID())) {
+            Utils::FunctionsSkyrim::Inventory::FavoriteItem(item.first, player);
+		}
+    }
+};
+
+void Manager::SyncFavorites() {
     ENABLE_IF_NOT_UNINSTALLED
     const auto player_inventory = RE::PlayerCharacter::GetSingleton()->GetInventory();
     for (auto& item : player_inventory) {
@@ -23,7 +44,7 @@ void Manager::UpdateFavorites() {
             }
         }
     }
-}
+};
 
 void Manager::FavoriteCheck(const FormID formid){
     ENABLE_IF_NOT_UNINSTALLED
@@ -57,7 +78,7 @@ void Manager::SendData() {
         const auto temp_form = Utils::FunctionsSkyrim::GetFormByID(fav_id);
         if (!temp_form) continue;
         const auto temp_editorid = clib_util::editorID::get_editorID(temp_form);
-        if (temp_editorid.empty()) continue;
+        //if (temp_editorid.empty()) continue;
         SaveDataLHS lhs({fav_id, temp_editorid});
         SetData(lhs, true);
         n_instances++;
@@ -76,17 +97,17 @@ void Manager::ReceiveData() {
     for (const auto& [lhs, rhs] : m_Data) {
         if (!rhs) continue;
         auto source_formid = lhs.first;
-        const auto& source_editorid = lhs.second;
+        auto source_editorid = lhs.second;
 
         if (!source_formid) {
             logger::error("ReceiveData: Formid is null.");
             continue;
         }
-        if (source_editorid.empty()) {
-            logger::error("ReceiveData: Editorid is empty.");
-            continue;
-        }
-        const auto source_form = Utils::FunctionsSkyrim::GetFormByID(0, source_editorid);
+        //if (source_editorid.empty()) {
+        //    logger::error("ReceiveData: Editorid is empty.");
+        //    continue;
+        //}
+        const auto source_form = Utils::FunctionsSkyrim::GetFormByID(source_formid, source_editorid);
         if (!source_form) {
             logger::critical("ReceiveData: Source form not found. Saved formid: {}, editorid: {}", source_formid,
                              source_editorid);
@@ -97,6 +118,9 @@ void Manager::ReceiveData() {
                          source_editorid);
             source_formid = source_form->GetFormID();
         }
+        if (source_editorid.empty()) {
+			source_editorid = clib_util::editorID::get_editorID(source_form);
+		}
 
         if (favorites.contains(source_formid)) {
 			logger::warn("ReceiveData: Form already favorited. FormID: {}, EditorID: {}", source_formid, source_editorid);
