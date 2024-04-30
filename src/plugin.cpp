@@ -1,11 +1,26 @@
 
+#include "Events.h"
+#include "Settings.h"
+
+auto* eventSink = myEventSink::GetSingleton();
 
 void OnMessage(SKSE::MessagingInterface::Message* message) {
     if (message->type == SKSE::MessagingInterface::kDataLoaded) {
         // Start
+        if (!Utils::IsPo3Installed()) {
+            logger::error("Po3 is not installed.");
+            Utils::MsgBoxesNotifs::Windows::Po3ErrMsg();
+            return;
+        }
     }
     if (message->type == SKSE::MessagingInterface::kNewGame || message->type == SKSE::MessagingInterface::kPostLoadGame) {
         // Post-load
+        RE::BSInputDeviceManager::GetSingleton()->AddEventSink(eventSink);
+        RE::UI::GetSingleton()->AddEventSink<RE::MenuOpenCloseEvent>(eventSink);
+        auto* eventSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
+        eventSourceHolder->AddEventSink<RE::TESContainerChangedEvent>(eventSink);
+
+        logger::info("Event sink added.");
     }
 }
 
@@ -28,10 +43,29 @@ static void SetupLog() {
     logger::info("Version of the plugin is {}.", SKSE::PluginDeclaration::GetSingleton()->GetVersion());
 }
 
+
+void SaveCallback(SKSE::SerializationInterface* serializationInterface) {
+    eventSink->SaveCallback(serializationInterface);
+};
+
+void LoadCallback(SKSE::SerializationInterface* serializationInterface) {
+	eventSink->LoadCallback(serializationInterface);
+};
+
+void InitializeSerialization() {
+    auto* serialization = SKSE::GetSerializationInterface();
+    serialization->SetUniqueID(Settings::kDataKey);
+    serialization->SetSaveCallback(SaveCallback);
+    serialization->SetLoadCallback(LoadCallback);
+    SKSE::log::trace("Cosave serialization initialized.");
+}
+
 SKSEPluginLoad(const SKSE::LoadInterface *skse) {
 
     SetupLog();
     logger::info("Plugin loaded");
     SKSE::Init(skse);
+    InitializeSerialization();
+    SKSE::GetMessagingInterface()->RegisterListener(OnMessage);
     return true;
 }
