@@ -1,10 +1,11 @@
 
+
 #pragma once
-#include "Utils.h"
+#include "Settings.h"
 
 
 using SaveDataLHS = std::pair<RE::FormID, std::string>;
-using SaveDataRHS = bool;
+using SaveDataRHS = int;
 
 
 // github.com/ozooma10/OSLAroused/blob/29ac62f220fadc63c829f6933e04be429d4f96b0/src/PersistedData.cpp
@@ -19,7 +20,7 @@ public:
 
     virtual bool Save(SKSE::SerializationInterface*, std::uint32_t, std::uint32_t) { return false; };
     virtual bool Save(SKSE::SerializationInterface*) { return false; };
-    virtual bool Load(SKSE::SerializationInterface*) { return false; };
+    virtual bool Load(SKSE::SerializationInterface*, unsigned int) { return false; };
 
     void Clear();
 
@@ -44,7 +45,7 @@ public:
     [[nodiscard]] bool Save(SKSE::SerializationInterface* serializationInterface, std::uint32_t type,
                             std::uint32_t version) override;
 
-    [[nodiscard]] bool Load(SKSE::SerializationInterface* serializationInterface) override;
+    [[nodiscard]] bool Load(SKSE::SerializationInterface* serializationInterface, unsigned int plugin_version) override;
 
 };
 

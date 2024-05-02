@@ -1,6 +1,5 @@
 
 #pragma once
-
 #include <windows.h>
 #include <ClibUtil/editorID.hpp>
 
@@ -14,6 +13,8 @@ namespace Utils {
         mod_name);
 
     std::string DecodeTypeCode(std::uint32_t typeCode);
+
+    std::string GetPluginVersion(const unsigned int n_stellen);
 
 
     namespace MsgBoxesNotifs {
@@ -29,6 +30,10 @@ namespace Utils {
             std::vector<std::pair<int, bool>> encodeString(const std::string& inputString);
 
             std::string decodeString(const std::vector<std::pair<int, bool>>& encodedValues);
+
+            std::string toLowercase(const std::string& str);
+
+            bool includesString(const std::string& input, const std::vector<std::string>& strings);
 
         };
     };

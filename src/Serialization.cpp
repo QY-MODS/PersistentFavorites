@@ -34,6 +34,11 @@ void BaseData<SaveDataLHS, SaveDataRHS>::Clear() {
         const std::string editorid = lhs.second;
         logger::trace("Editorid:{}", editorid);
         Utils::write_string(serializationInterface, editorid);
+
+        if (!serializationInterface->WriteRecordData(rhs)) {
+            logger::error("Failed to save hotkey");
+            return false;
+        }
     }
     return true;
 }
@@ -48,8 +53,13 @@ void BaseData<SaveDataLHS, SaveDataRHS>::Clear() {
     return Save(serializationInterface);
 }
 
-[[nodiscard]] bool SaveLoadData::Load(SKSE::SerializationInterface* serializationInterface) {
+[[nodiscard]] bool SaveLoadData::Load(SKSE::SerializationInterface* serializationInterface, unsigned int pluginversion) {
     assert(serializationInterface);
+
+    if (pluginversion < 1) {
+		logger::error("Plugin version is less than 0.1, skipping load.");
+		return false;
+	}
 
     std::size_t recordDataSize;
     serializationInterface->ReadRecordData(recordDataSize);
@@ -76,7 +86,18 @@ void BaseData<SaveDataLHS, SaveDataRHS>::Clear() {
         SaveDataLHS lhs({formid, editorid});
         logger::trace("Reading value...");
 
-        m_Data[lhs] = true;
+        if (pluginversion < 2) {
+            m_Data[lhs] = -1;
+        } 
+        else {
+			SaveDataRHS rhs;
+            if (!serializationInterface->ReadRecordData(rhs)) {
+				logger::error("Failed to read hotkey");
+				return false;
+			}
+			m_Data[lhs] = rhs;
+        }
+
         logger::info("Loaded data for formid {}, editorid {}", formid, editorid);
     }
 
