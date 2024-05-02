@@ -38,7 +38,7 @@ void Manager::UpdateHotkeyMap(const FormID item_formid, const RE::InventoryEntry
     }
 }
 
-const bool Manager::HotkeyIsInUse(const int a_hotkey) {
+const bool Manager::HotkeyIsInUse(const int a_hotkey) const {
     if (!IsHotkeyValid(a_hotkey)) {
         logger::error("Hotkey invalid. Hotkey: {}", a_hotkey);
         return false;

@@ -7,12 +7,11 @@
 class Manager : public SaveLoadData {
 
     std::set<FormID> favorites;
+    std::map<FormID, unsigned int> hotkey_map;
 
     bool isUninstalled = false;
 
-    std::map<FormID, unsigned int> hotkey_map;
-
-    std::set<unsigned int> allowed_hotkeys = {0,1,2,3,4,5,6,7};
+    const std::set<unsigned int> allowed_hotkeys = {0,1,2,3,4,5,6,7};
 
     const int GetHotkey(const RE::InventoryEntryData* a_entry) const ;
 
@@ -20,7 +19,7 @@ class Manager : public SaveLoadData {
 
     void UpdateHotkeyMap(const FormID item_formid, const RE::InventoryEntryData* a_entry);
     
-    const bool HotkeyIsInUse(const int hotkey);
+    const bool HotkeyIsInUse(const int hotkey) const;
 
     void ApplyHotkey(const FormID formid);
 
