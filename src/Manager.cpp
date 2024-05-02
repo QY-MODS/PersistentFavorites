@@ -223,6 +223,10 @@ void Manager::SendData() {
         const int rhs = hotkey_map.contains(fav_id) && IsHotkeyValid(hotkey_map.at(fav_id)) ? hotkey_map.at(fav_id) : -1;
         SetData(lhs, rhs);
         n_instances++;
+        if (n_instances >= Settings::instance_limit) {
+			logger::warn("SendData: Instance limit reached. Number of instances: {}", n_instances);
+			break;
+		}
     }
     logger::info("Data sent. Number of instances: {}", n_instances);
 }

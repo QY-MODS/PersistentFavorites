@@ -9,4 +9,6 @@ namespace Settings {
         {34,1}, 
         {kSerializationVersion, 2}
     };
+
+    static const unsigned int instance_limit = 1000;
 };
