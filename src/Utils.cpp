@@ -1,6 +1,4 @@
 
-#pragma once
-
 #include "Utils.h"
 
 namespace Utils {
@@ -12,6 +10,18 @@ namespace Utils {
         buf[1] = char(typeCode >> 16);
         buf[0] = char(typeCode >> 24);
         return std::string(buf, buf + 4);
+    }
+    std::string GetPluginVersion(const unsigned int n_stellen) { 
+        const auto fullVersion = SKSE::PluginDeclaration::GetSingleton()->GetVersion();
+        unsigned int i = 1;
+        std::string version = std::to_string(fullVersion.major());
+        if (n_stellen == i) return version;
+        version += "." + std::to_string(fullVersion.minor());
+        if (n_stellen == ++i) return version;
+        version += "." + std::to_string(fullVersion.patch());
+        if (n_stellen == ++i) return version;
+        version += "." + std::to_string(fullVersion.build());
+        return version;
     };
 
     namespace MsgBoxesNotifs {

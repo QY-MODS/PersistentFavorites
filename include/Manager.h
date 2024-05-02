@@ -1,7 +1,5 @@
 
 #pragma once
-
-
 #include "Serialization.h"
 
 #define ENABLE_IF_NOT_UNINSTALLED if (isUninstalled) return;

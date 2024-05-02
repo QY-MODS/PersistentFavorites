@@ -1,6 +1,5 @@
 
 #include "Events.h"
-#include "Settings.h"
 
 auto* eventSink = myEventSink::GetSingleton();
 

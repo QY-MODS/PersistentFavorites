@@ -1,5 +1,5 @@
-#pragma once
 
+#pragma once
 #include "Manager.h"
 
 class myEventSink : public RE::BSTEventSink<RE::MenuOpenCloseEvent>,

@@ -1,6 +1,4 @@
-#include "Utils.h"
 #include "Manager.h"
-#include "Serialization.h"
 
 
 const int Manager::GetHotkey(const RE::InventoryEntryData* a_entry) const { 
@@ -63,7 +61,7 @@ void Manager::ApplyHotkey(const FormID formid) {
     if (!formid) return;
     if (!favorites.contains(formid)) return;
     if (!hotkey_map.contains(formid)) return;
-    const auto hotkey = hotkey_map[formid];
+    const auto hotkey = hotkey_map.at(formid);
     if (!IsHotkeyValid(hotkey)) {
         logger::error("Hotkey invalid. FormID: {:x}, Hotkey: {}", formid, hotkey);
         hotkey_map.erase(formid);
@@ -72,6 +70,7 @@ void Manager::ApplyHotkey(const FormID formid) {
     if (HotkeyIsInUse(hotkey)) {
 		logger::trace("Hotkey in use. FormID: {:x}, Hotkey: {}", formid, hotkey);
 		hotkey_map.erase(formid);
+        return;
     }
     const auto bound = Utils::FunctionsSkyrim::GetFormByID<RE::TESBoundObject>(formid);
     if (!bound) {
@@ -221,7 +220,8 @@ void Manager::SendData() {
         const auto temp_editorid = clib_util::editorID::get_editorID(temp_form);
         //if (temp_editorid.empty()) continue;
         SaveDataLHS lhs({fav_id, temp_editorid});
-        SetData(lhs, true);
+        const int rhs = hotkey_map.contains(fav_id) && IsHotkeyValid(hotkey_map.at(fav_id)) ? hotkey_map.at(fav_id) : -1;
+        SetData(lhs, rhs);
         n_instances++;
     }
     logger::info("Data sent. Number of instances: {}", n_instances);
@@ -237,7 +237,7 @@ void Manager::ReceiveData() {
 
     int n_instances = 0;
     for (const auto& [lhs, rhs] : m_Data) {
-        if (!rhs) continue;
+        
         auto source_formid = lhs.first;
         auto source_editorid = lhs.second;
 
@@ -269,6 +269,8 @@ void Manager::ReceiveData() {
 			continue;
         }
         else favorites.insert(source_formid);
+
+        if (IsHotkeyValid(rhs)) hotkey_map[source_formid] = rhs;
 
 		logger::info("FormID: {}, EditorID: {}", source_formid, source_editorid);
 		n_instances++;
