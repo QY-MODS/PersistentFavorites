@@ -58,6 +58,27 @@ namespace Utils {
                 }
                 return decodedString;
             }
+
+            std::string toLowercase(const std::string& str) {
+                std::string result = str;
+                std::transform(result.begin(), result.end(), result.begin(),
+                               [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+                return result;
+            }
+
+            bool includesString(const std::string& input, const std::vector<std::string>& strings) {
+                std::string lowerInput = toLowercase(input);
+
+                for (const auto& str : strings) {
+                    std::string lowerStr = str;
+                    std::transform(lowerStr.begin(), lowerStr.end(), lowerStr.begin(),
+                                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+                    if (lowerInput.find(lowerStr) != std::string::npos) {
+                        return true;  // The input string includes one of the strings
+                    }
+                }
+                return false;  // None of the strings in 'strings' were found in the input string
+            }
         };
     }; 
 

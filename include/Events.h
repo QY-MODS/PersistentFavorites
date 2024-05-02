@@ -11,14 +11,8 @@ class myEventSink : public RE::BSTEventSink<RE::MenuOpenCloseEvent>,
     myEventSink& operator=(const myEventSink&) = delete;
     myEventSink& operator=(myEventSink&&) = delete;
 
+
     Manager* M = Manager::GetSingleton();
-
-public:
-
-    static myEventSink* GetSingleton() {
-        static myEventSink singleton;
-        return &singleton;
-    }
 
     RE::BSEventNotifyControl ProcessEvent(RE::InputEvent* const* evns, RE::BSTEventSource<RE::InputEvent*>*);
 
@@ -27,6 +21,16 @@ public:
 
     RE::BSEventNotifyControl ProcessEvent(const RE::MenuOpenCloseEvent* event,
                                           RE::BSTEventSource<RE::MenuOpenCloseEvent>*);
+
+    inline bool IsHotkeyEvent(const RE::BSFixedString& event_name);
+
+public:
+
+    static myEventSink* GetSingleton() {
+        static myEventSink singleton;
+        return &singleton;
+    }
+
 
     void SaveCallback(SKSE::SerializationInterface* serializationInterface);
 

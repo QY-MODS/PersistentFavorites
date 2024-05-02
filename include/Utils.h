@@ -30,6 +30,10 @@ namespace Utils {
 
             std::string decodeString(const std::vector<std::pair<int, bool>>& encodedValues);
 
+            std::string toLowercase(const std::string& str);
+
+            bool includesString(const std::string& input, const std::vector<std::string>& strings);
+
         };
     };
 

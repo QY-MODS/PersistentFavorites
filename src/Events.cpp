@@ -11,7 +11,7 @@ RE::BSEventNotifyControl myEventSink::ProcessEvent(RE::InputEvent* const* evns, 
         const RE::IDEvent* id_event = e->AsIDEvent();
         const auto& userEvent = id_event->userEvent;
         const auto userevents = RE::UserEvents::GetSingleton();
-        if (userEvent != userevents->toggleFavorite && userEvent != userevents->yButton) continue;
+        if (!IsHotkeyEvent(userEvent) && userEvent != userevents->toggleFavorite && userEvent != userevents->yButton) continue;
         logger::trace("User event: {}", userEvent.c_str());
         M->SyncFavorites();
         return RE::BSEventNotifyControl::kContinue;
@@ -37,6 +37,10 @@ RE::BSEventNotifyControl myEventSink::ProcessEvent(const RE::MenuOpenCloseEvent*
     M->AddFavorites();
     return RE::BSEventNotifyControl::kContinue;
 }
+
+bool myEventSink::IsHotkeyEvent(const RE::BSFixedString& event_name){
+    return Utils::Functions::String::includesString(std::string(event_name.c_str()), {"Hotkey"});
+};
 
 void myEventSink::SaveCallback(SKSE::SerializationInterface* serializationInterface) {
     M->SendData();
