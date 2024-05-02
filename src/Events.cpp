@@ -37,7 +37,7 @@ RE::BSEventNotifyControl myEventSink::ProcessEvent(const RE::MenuOpenCloseEvent*
     return RE::BSEventNotifyControl::kContinue;
 }
 
-bool myEventSink::IsHotkeyEvent(const RE::BSFixedString& event_name){
+bool myEventSink::IsHotkeyEvent(const RE::BSFixedString& event_name) const {
     return Utils::Functions::String::includesString(std::string(event_name.c_str()), {"Hotkey"});
 };
 

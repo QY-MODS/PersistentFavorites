@@ -22,7 +22,7 @@ class myEventSink : public RE::BSTEventSink<RE::MenuOpenCloseEvent>,
     RE::BSEventNotifyControl ProcessEvent(const RE::MenuOpenCloseEvent* event,
                                           RE::BSTEventSource<RE::MenuOpenCloseEvent>*);
 
-    inline bool IsHotkeyEvent(const RE::BSFixedString& event_name);
+    inline bool IsHotkeyEvent(const RE::BSFixedString& event_name) const;
 
 public:
 
