@@ -55,6 +55,10 @@ namespace Utils {
 
         const std::string GetEditorID(const FormID a_formid);
 
+        namespace Menu {
+            const bool IsOpen(RE::BSFixedString menu_name);
+        };
+
         namespace Inventory {
 
             const bool HasItemEntry(RE::TESBoundObject* item, RE::TESObjectREFR* inventory_owner,

@@ -110,6 +110,15 @@ namespace Utils {
             } else return "";
         }
 
+        namespace Menu {
+            const bool IsOpen(RE::BSFixedString menu_name) {
+                if (const auto ui = RE::UI::GetSingleton(); ui) {
+					return ui->IsMenuOpen(menu_name);
+				}
+				return false;
+			}
+        };
+
         namespace Inventory {
 
             const bool HasItemEntry(RE::TESBoundObject* item, RE::TESObjectREFR* inventory_owner,

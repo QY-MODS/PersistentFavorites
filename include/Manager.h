@@ -4,10 +4,12 @@
 
 #define ENABLE_IF_NOT_UNINSTALLED if (isUninstalled) return;
 
-class Manager : public SaveLoadData {
+class Manager : public SaveLoadData, public RE::Actor::ForEachSpellVisitor {
 
     std::set<FormID> favorites;
     std::map<FormID, unsigned int> hotkey_map;
+    std::map<FormID, int> temp_mg_favs;
+    bool player_has_spell = false;
 
     bool isUninstalled = false;
 
@@ -18,12 +20,24 @@ class Manager : public SaveLoadData {
     const bool IsHotkeyValid(const int hotkey) const;
 
     void UpdateHotkeyMap(const FormID item_formid, const RE::InventoryEntryData* a_entry);
+
+    void UpdateHotkeyMap(const FormID spell_formid, const int a_hotkey);
+
+    const std::set<unsigned int> GetInventoryHotkeys() const;
+
+    const std::map<FormID, unsigned int> GetMagicHotkeys() const;
     
+    const std::set<unsigned int> GetHotkeysInUse() const;
+
     const bool HotkeyIsInUse(const int hotkey) const;
+
+    void HotkeySpell(RE::TESForm* form, const unsigned int hotkey);
 
     void ApplyHotkey(const FormID formid);
 
     void SyncHotkeys();
+
+    RE::BSContainer::ForEachResult Visit(RE::SpellItem* a_spell);
 
 public:
     static Manager* GetSingleton() {

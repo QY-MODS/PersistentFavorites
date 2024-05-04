@@ -10,9 +10,13 @@ RE::BSEventNotifyControl myEventSink::ProcessEvent(RE::InputEvent* const* evns, 
         const RE::IDEvent* id_event = e->AsIDEvent();
         const auto& userEvent = id_event->userEvent;
         const auto userevents = RE::UserEvents::GetSingleton();
-        if (!IsHotkeyEvent(userEvent) && userEvent != userevents->toggleFavorite && userEvent != userevents->yButton) continue;
-        logger::trace("User event: {}", userEvent.c_str());
-        M->SyncFavorites();
+        if (IsHotkeyEvent(userEvent) && Utils::FunctionsSkyrim::Menu::IsOpen(RE::FavoritesMenu::MENU_NAME)) {
+            logger::trace("User event: {}", userEvent.c_str());
+            M->SyncFavorites();
+        }
+        else if (userEvent == userevents->toggleFavorite || userEvent == userevents->yButton){
+            M->SyncFavorites();
+        };
         return RE::BSEventNotifyControl::kContinue;
     }
     return RE::BSEventNotifyControl::kContinue;
@@ -34,6 +38,16 @@ RE::BSEventNotifyControl myEventSink::ProcessEvent(const RE::MenuOpenCloseEvent*
         event->menuName != RE::ContainerMenu::MENU_NAME)
         return RE::BSEventNotifyControl::kContinue;
     M->AddFavorites();
+    return RE::BSEventNotifyControl::kContinue;
+}
+
+RE::BSEventNotifyControl myEventSink::ProcessEvent(const RE::SpellsLearned::Event* a_event,
+                                             RE::BSTEventSource<RE::SpellsLearned::Event>*) {
+    if (!a_event) {
+        return RE::BSEventNotifyControl::kContinue;
+    }
+    logger::info("Spell learned: {}", a_event->spell->GetName());
+
     return RE::BSEventNotifyControl::kContinue;
 }
 
@@ -92,6 +106,3 @@ void myEventSink::LoadCallback(SKSE::SerializationInterface* serializationInterf
     } else logger::info("No cosave data found.");
 
 };
-
-
-
