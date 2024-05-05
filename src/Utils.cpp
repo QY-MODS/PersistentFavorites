@@ -110,6 +110,33 @@ namespace Utils {
             } else return "";
         }
 
+        namespace Menu {
+            const bool IsOpen(RE::BSFixedString menu_name) {
+                if (const auto ui = RE::UI::GetSingleton()) {
+					return ui->IsMenuOpen(menu_name);
+				}
+				return false;
+            }
+
+            void OpenMenu(const std::string_view menuname){
+                if (IsOpen(menuname)) return;
+				RE::BSFixedString menuName(menuname);
+                if (const auto queue = RE::UIMessageQueue::GetSingleton()) {
+                    queue->AddMessage(menuName, RE::UI_MESSAGE_TYPE::kShow, nullptr);
+                };
+            };
+
+            void CloseMenu(const std::string_view menuname) {
+                if (auto ui = RE::UI::GetSingleton()) {
+                    if (!ui->IsMenuOpen(menuname)) return;
+                }
+                RE::BSFixedString menuName(menuname);
+                if (const auto queue = RE::UIMessageQueue::GetSingleton()) {
+                    queue->AddMessage(menuName, RE::UI_MESSAGE_TYPE::kHide, nullptr);
+                }
+            };
+        };
+
         namespace Inventory {
 
             const bool HasItemEntry(RE::TESBoundObject* item, RE::TESObjectREFR* inventory_owner,

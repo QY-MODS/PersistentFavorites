@@ -4,7 +4,8 @@
 
 class myEventSink : public RE::BSTEventSink<RE::MenuOpenCloseEvent>,
                     public RE::BSTEventSink<RE::TESContainerChangedEvent>, 
-                    public RE::BSTEventSink<RE::InputEvent*> {
+                    public RE::BSTEventSink<RE::InputEvent*>,
+                    public RE::BSTEventSink<RE::SpellsLearned::Event> {
     myEventSink() = default;
     myEventSink(const myEventSink&) = delete;
     myEventSink(myEventSink&&) = delete;
@@ -14,18 +15,19 @@ class myEventSink : public RE::BSTEventSink<RE::MenuOpenCloseEvent>,
 
     Manager* M = Manager::GetSingleton();
 
-    RE::BSEventNotifyControl ProcessEvent(RE::InputEvent* const* evns, RE::BSTEventSource<RE::InputEvent*>*);
+    virtual RE::BSEventNotifyControl ProcessEvent(RE::InputEvent* const* evns, RE::BSTEventSource<RE::InputEvent*>*) override;
+    virtual RE::BSEventNotifyControl ProcessEvent(const RE::TESContainerChangedEvent* event,
+                                          RE::BSTEventSource<RE::TESContainerChangedEvent>*) override;
 
-    RE::BSEventNotifyControl ProcessEvent(const RE::TESContainerChangedEvent* event,
-                                          RE::BSTEventSource<RE::TESContainerChangedEvent>*);
+    virtual RE::BSEventNotifyControl ProcessEvent(const RE::MenuOpenCloseEvent* event,
+                                          RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override;
 
-    RE::BSEventNotifyControl ProcessEvent(const RE::MenuOpenCloseEvent* event,
-                                          RE::BSTEventSource<RE::MenuOpenCloseEvent>*);
+    virtual RE::BSEventNotifyControl ProcessEvent(const RE::SpellsLearned::Event* a_event,
+                                     RE::BSTEventSource<RE::SpellsLearned::Event>*) override;
 
     inline bool IsHotkeyEvent(const RE::BSFixedString& event_name) const;
 
 public:
-
     static myEventSink* GetSingleton() {
         static myEventSink singleton;
         return &singleton;

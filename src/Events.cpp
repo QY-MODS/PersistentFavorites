@@ -10,9 +10,13 @@ RE::BSEventNotifyControl myEventSink::ProcessEvent(RE::InputEvent* const* evns, 
         const RE::IDEvent* id_event = e->AsIDEvent();
         const auto& userEvent = id_event->userEvent;
         const auto userevents = RE::UserEvents::GetSingleton();
-        if (!IsHotkeyEvent(userEvent) && userEvent != userevents->toggleFavorite && userEvent != userevents->yButton) continue;
-        logger::trace("User event: {}", userEvent.c_str());
-        M->SyncFavorites();
+        if (IsHotkeyEvent(userEvent) && Utils::FunctionsSkyrim::Menu::IsOpen(RE::FavoritesMenu::MENU_NAME)) {
+            logger::trace("User event: {}", userEvent.c_str());
+            M->SyncFavorites();
+        }
+        else if (userEvent == userevents->toggleFavorite || userEvent == userevents->yButton){
+            M->SyncFavorites();
+        }
         return RE::BSEventNotifyControl::kContinue;
     }
     return RE::BSEventNotifyControl::kContinue;
@@ -22,7 +26,7 @@ RE::BSEventNotifyControl myEventSink::ProcessEvent(const RE::TESContainerChanged
                                                    RE::BSTEventSource<RE::TESContainerChangedEvent>*) {
     if (!event) return RE::BSEventNotifyControl::kContinue;
     if (event->newContainer!=player_refid) return RE::BSEventNotifyControl::kContinue;
-    M->FavoriteCheck(event->baseObj);
+    M->FavoriteCheck_Item(event->baseObj);
     return RE::BSEventNotifyControl::kContinue;
 }
 
@@ -31,9 +35,22 @@ RE::BSEventNotifyControl myEventSink::ProcessEvent(const RE::MenuOpenCloseEvent*
     if (!event) return RE::BSEventNotifyControl::kContinue;
     if (event->menuName != RE::FavoritesMenu::MENU_NAME &&
         event->menuName != RE::InventoryMenu::MENU_NAME &&
-        event->menuName != RE::ContainerMenu::MENU_NAME)
-        return RE::BSEventNotifyControl::kContinue;
+        event->menuName != RE::ContainerMenu::MENU_NAME &&
+        event->menuName != RE::MagicMenu::MENU_NAME) return RE::BSEventNotifyControl::kContinue;
+    logger::trace("Menu event: {}", event->menuName.c_str());
     M->AddFavorites();
+    if (event->opening) {
+        auto player_ref = RE::PlayerCharacter::GetSingleton()->AsReference();
+        SKSE::GetTaskInterface()->AddTask([player_ref]() { RE::SendUIMessage::SendInventoryUpdateMessage(player_ref, nullptr);
+		});
+    }
+    return RE::BSEventNotifyControl::kContinue;
+}
+
+RE::BSEventNotifyControl myEventSink::ProcessEvent(const RE::SpellsLearned::Event* a_event,
+                                             RE::BSTEventSource<RE::SpellsLearned::Event>*) {
+    if (!a_event) return RE::BSEventNotifyControl::kContinue;
+    M->FavoriteCheck_Spell();
     return RE::BSEventNotifyControl::kContinue;
 }
 
@@ -92,6 +109,3 @@ void myEventSink::LoadCallback(SKSE::SerializationInterface* serializationInterf
     } else logger::info("No cosave data found.");
 
 };
-
-
-

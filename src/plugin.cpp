@@ -18,6 +18,9 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
         RE::UI::GetSingleton()->AddEventSink<RE::MenuOpenCloseEvent>(eventSink);
         auto* eventSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
         eventSourceHolder->AddEventSink<RE::TESContainerChangedEvent>(eventSink);
+        auto spellsource = RE::SpellsLearned::GetEventSource();
+        spellsource->AddEventSink(eventSink);
+        logger::info("Event sinks added.");
 
         logger::info("Event sink added.");
     }

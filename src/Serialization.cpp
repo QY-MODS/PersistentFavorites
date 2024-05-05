@@ -25,14 +25,13 @@ void BaseData<SaveDataLHS, SaveDataRHS>::Clear() {
 
     for (const auto& [lhs, rhs] : m_Data) {
         std::uint32_t formid = lhs.first;
-        logger::trace("Formid:{}", formid);
         if (!serializationInterface->WriteRecordData(formid)) {
             logger::error("Failed to save formid");
             return false;
         }
 
         const std::string editorid = lhs.second;
-        logger::trace("Editorid:{}", editorid);
+        logger::trace("Formid:{:x},Editorid:{}", formid, editorid);
         Utils::write_string(serializationInterface, editorid);
 
         if (!serializationInterface->WriteRecordData(rhs)) {
