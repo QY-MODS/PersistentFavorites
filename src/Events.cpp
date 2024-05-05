@@ -26,7 +26,7 @@ RE::BSEventNotifyControl myEventSink::ProcessEvent(const RE::TESContainerChanged
                                                    RE::BSTEventSource<RE::TESContainerChangedEvent>*) {
     if (!event) return RE::BSEventNotifyControl::kContinue;
     if (event->newContainer!=player_refid) return RE::BSEventNotifyControl::kContinue;
-    M->FavoriteCheck(event->baseObj);
+    M->FavoriteCheck_Bound(event->baseObj);
     return RE::BSEventNotifyControl::kContinue;
 }
 
@@ -43,10 +43,16 @@ RE::BSEventNotifyControl myEventSink::ProcessEvent(const RE::MenuOpenCloseEvent*
 
 RE::BSEventNotifyControl myEventSink::ProcessEvent(const RE::SpellsLearned::Event* a_event,
                                              RE::BSTEventSource<RE::SpellsLearned::Event>*) {
-    if (!a_event) {
-        return RE::BSEventNotifyControl::kContinue;
+    if (!a_event) return RE::BSEventNotifyControl::kContinue;
+    
+    if (REL::Module::IsAE()) {
+        logger::trace("Spell Learned.");
+        M->FavoriteCheck_Spell();
     }
-    logger::info("Spell learned: {}", a_event->spell->GetName());
+    else {
+        logger::trace("Spell Learned: {}", a_event->spell->formID);
+		M->FavoriteCheck_Spell(a_event->spell->formID);
+	}
 
     return RE::BSEventNotifyControl::kContinue;
 }

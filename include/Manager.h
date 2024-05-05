@@ -8,12 +8,13 @@ class Manager : public SaveLoadData, public RE::Actor::ForEachSpellVisitor {
 
     std::set<FormID> favorites;
     std::map<FormID, unsigned int> hotkey_map;
-    std::map<FormID, int> temp_mg_favs;
-    bool player_has_spell = false;
+    std::set<FormID> temp_all_spells;
 
     bool isUninstalled = false;
 
     const std::set<unsigned int> allowed_hotkeys = {0,1,2,3,4,5,6,7};
+    
+    const bool RemoveFavorite(const FormID formid);
 
     const int GetHotkey(const RE::InventoryEntryData* a_entry) const ;
 
@@ -35,9 +36,17 @@ class Manager : public SaveLoadData, public RE::Actor::ForEachSpellVisitor {
 
     void ApplyHotkey(const FormID formid);
 
+    void SyncHotkeys_Bound();
+
+    void SyncHotkeys_Spell();
+
     void SyncHotkeys();
 
+    const bool IsSpellFavorited(const FormID a_spell,const RE::BSTArray<RE::TESForm*>& favs) const;
+
     RE::BSContainer::ForEachResult Visit(RE::SpellItem* a_spell);
+
+    void CollectPlayerSpells();
 
 public:
     static Manager* GetSingleton() {
@@ -47,14 +56,24 @@ public:
     
     const char* GetType() override { return "Manager"; }
 
+    void AddFavorites_Bound();
+    
+    void AddFavorites_Spell();
+
     void AddFavorites();
+
+    void SyncFavorites_Bound();
+
+    void SyncFavorites_Spell();
 
     void SyncFavorites();
 
-    void FavoriteCheck(const FormID formid);
+    void FavoriteCheck_Bound(const FormID formid);
 
-    const bool RemoveFavorite(const FormID formid);
+    void FavoriteCheck_Spell(const FormID formid);
 
+    void FavoriteCheck_Spell();
+    
     inline void Uninstall() { isUninstalled = true; };
 
     void Reset();

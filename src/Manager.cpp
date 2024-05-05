@@ -1,6 +1,11 @@
 #include "Manager.h"
 
 
+const bool Manager::RemoveFavorite(const FormID formid) {
+	const auto removed = favorites.erase(formid);
+	hotkey_map.erase(formid);
+    return removed;
+};
 const int Manager::GetHotkey(const RE::InventoryEntryData* a_entry) const { 
     if (!a_entry) {
         logger::warn("GetHotkey: Entry is null.");
@@ -138,6 +143,10 @@ void Manager::ApplyHotkey(const FormID formid) {
         HotkeySpell(spell, hotkey);
 		return;
 	}
+
+    // Spell ended
+
+    // Now bound object
     const auto bound = Utils::FunctionsSkyrim::GetFormByID<RE::TESBoundObject>(formid);
     if (!bound) {
         logger::error("ApplyHotkey: Form not found. FormID: {:x}", formid);
@@ -186,7 +195,7 @@ void Manager::ApplyHotkey(const FormID formid) {
     
 }
 
-void Manager::SyncHotkeys() {
+void Manager::SyncHotkeys_Bound() {
     ENABLE_IF_NOT_UNINSTALLED
     const auto player_inventory = RE::PlayerCharacter::GetSingleton()->GetInventory();
     for (auto& item : player_inventory) {
@@ -198,42 +207,49 @@ void Manager::SyncHotkeys() {
         if (!item.second.second->IsFavorited()) continue;
         UpdateHotkeyMap(item.first->GetFormID(), item.second.second.get());
     }
+}
+
+void Manager::SyncHotkeys_Spell() {
+    ENABLE_IF_NOT_UNINSTALLED
     const auto& mg_favorites = RE::MagicFavorites::GetSingleton()->spells;
+    const auto mg_hotkeys = GetMagicHotkeys();
     for (auto& spell : mg_favorites) {
         if (!spell) continue;
-        if (const auto spell_form = RE::TESForm::LookupByID(spell->GetFormID()); !spell_form)
-            continue;
-        else
-            logger::info("Spell favorited. FormID: {:x}, EditorID: {}", spell->GetFormID(),
-                         clib_util::editorID::get_editorID(spell_form));
+        if (std::strlen(spell->GetName()) == 0) continue;
+        if (!mg_hotkeys.contains(spell->GetFormID())) continue;
+        const auto spell_formid = spell->GetFormID();
+        UpdateHotkeyMap(spell_formid, mg_hotkeys.at(spell_formid));
     }
-    const auto& hotkeyed_spells = RE::MagicFavorites::GetSingleton()->hotkeys;
-    for (auto& hotkeyed_spell : hotkeyed_spells) {
-		if (!hotkeyed_spell) continue;
-        else logger::info("Spell hotkeyed. FormID: {:x}, EditorID: {}", hotkeyed_spell->GetFormID(),
-						  clib_util::editorID::get_editorID(RE::TESForm::LookupByID(hotkeyed_spell->GetFormID())));
+}
+
+void Manager::SyncHotkeys() {
+    ENABLE_IF_NOT_UNINSTALLED
+	SyncHotkeys_Bound();
+	SyncHotkeys_Spell();
+}
+
+const bool Manager::IsSpellFavorited(const FormID a_spell, const RE::BSTArray<RE::TESForm*>& favs) const {
+    for (auto& fav : favs) {
+		if (!fav) continue;
+		if (fav->GetFormID() == a_spell) return true;
 	}
+	return false;
 }
 
 RE::BSContainer::ForEachResult Manager::Visit(RE::SpellItem* a_spell) {
-    if (a_spell) {
-        const auto spell_formid = a_spell->GetFormID();
-        if (temp_mg_favs.contains(spell_formid)) {
-            if (favorites.insert(spell_formid).second) {
-                    logger::trace("Spell favorited. FormID: {:x}, EditorID: {}", spell_formid,
-                    							  clib_util::editorID::get_editorID(a_spell));
-			}
-            UpdateHotkeyMap(spell_formid, temp_mg_favs[a_spell->GetFormID()]);
-        }
-        else if (RemoveFavorite(spell_formid)) {
-            logger::trace("Spell erased. FormID: {:x}, EditorID: {}", spell_formid,
-                						  clib_util::editorID::get_editorID(a_spell));
-        }
-    }
+    if (!a_spell) return RE::BSContainer::ForEachResult::kContinue;
+    if (std::strlen(a_spell->GetName()) == 0) return RE::BSContainer::ForEachResult::kContinue;
+    temp_all_spells.insert(a_spell->GetFormID());
     return RE::BSContainer::ForEachResult::kContinue;
 }
 
-void Manager::AddFavorites() {
+void Manager::CollectPlayerSpells() {
+    temp_all_spells.clear();
+    const auto player = RE::PlayerCharacter::GetSingleton(); 
+    player->VisitSpells(*this);
+}
+
+void Manager::AddFavorites_Bound() {
     ENABLE_IF_NOT_UNINSTALLED
     const auto player = RE::PlayerCharacter::GetSingleton();
     const auto player_inventory = player->GetInventory();
@@ -248,34 +264,49 @@ void Manager::AddFavorites() {
                               clib_util::editorID::get_editorID(item.first));
             }
             UpdateHotkeyMap(item.first->GetFormID(), item.second.second.get());
-        }
-        else if (favorites.contains(item.first->GetFormID())) {
+        } else if (favorites.contains(item.first->GetFormID())) {
             Utils::FunctionsSkyrim::Inventory::FavoriteItem(item.first, player);
             ApplyHotkey(item.first->GetFormID());
-		}
+        }
     }
-    const auto mg_favorites = RE::MagicFavorites::GetSingleton()->spells;
-    for (auto& spell : mg_favorites) {
-		if (!spell) continue;
-        if (const auto spell_form = RE::TESForm::LookupByID(spell->GetFormID()); !spell_form) continue;
-        else logger::info("Spell favorited. FormID: {:x}, EditorID: {}", spell->GetFormID(),
-						  clib_util::editorID::get_editorID(spell_form));
-        
-	}
-    size_t index = 0;
-    const auto& hotkeyed_spells = RE::MagicFavorites::GetSingleton()->hotkeys;
-    for (auto& hotkeyed_spell : hotkeyed_spells) {
-        if (!hotkeyed_spell) {
-            index++;
-            continue;
-        } else
-            logger::info("Index:{},Spell hotkeyed. FormID: {:x}, EditorID: {}", index, hotkeyed_spell->GetFormID(),
-                         clib_util::editorID::get_editorID(RE::TESForm::LookupByID(hotkeyed_spell->GetFormID())));
-        index++;
-    }
-};
+}
 
-void Manager::SyncFavorites() {
+void Manager::AddFavorites_Spell() {
+    ENABLE_IF_NOT_UNINSTALLED
+    
+    const auto mg_favorites = RE::MagicFavorites::GetSingleton();
+    const auto& favorited_spells = mg_favorites->spells;
+    const auto hotkeyed_spells = GetMagicHotkeys();
+    CollectPlayerSpells();
+    if (temp_all_spells.empty()) {
+        logger::warn("AddFavorites: No spells found.");
+        return;
+    }
+    for (auto& spell_formid : temp_all_spells) {
+        const auto spell = Utils::FunctionsSkyrim::GetFormByID(spell_formid);
+        if (!spell) continue;
+        logger::trace("Player has spell: {}", spell->GetName());
+        if (IsSpellFavorited(spell_formid, favorited_spells)) {
+            if (favorites.insert(spell_formid).second) {
+                logger::trace("Spell favorited. FormID: {:x}, EditorID: {}", spell_formid,
+                              clib_util::editorID::get_editorID(spell));
+            }
+            if (hotkeyed_spells.contains(spell_formid)) UpdateHotkeyMap(spell_formid, hotkeyed_spells.at(spell_formid));
+        } else if (favorites.contains(spell_formid)) {
+            mg_favorites->SetFavorite(spell);
+            ApplyHotkey(spell_formid);
+        }
+    }
+    temp_all_spells.clear();
+}
+
+void Manager::AddFavorites() {
+    ENABLE_IF_NOT_UNINSTALLED
+    AddFavorites_Bound();
+    AddFavorites_Spell();
+}
+
+void Manager::SyncFavorites_Bound(){
     ENABLE_IF_NOT_UNINSTALLED
     const auto player_inventory = RE::PlayerCharacter::GetSingleton()->GetInventory();
     for (auto& item : player_inventory) {
@@ -285,50 +316,85 @@ void Manager::SyncFavorites() {
         if (!item.second.second) continue;
         if (item.second.second->IsFavorited()) {
             if (favorites.insert(item.first->GetFormID()).second) {
-                logger::trace("Item favorited. FormID: {:x}, EditorID: {}", item.first->GetFormID(), clib_util::editorID::get_editorID(item.first));
+                logger::trace("Item favorited. FormID: {:x}, EditorID: {}", item.first->GetFormID(),
+                              clib_util::editorID::get_editorID(item.first));
             }
             UpdateHotkeyMap(item.first->GetFormID(), item.second.second.get());
-        } 
-        else if (RemoveFavorite(item.first->GetFormID())) {
+        } else if (RemoveFavorite(item.first->GetFormID())) {
             logger::trace("Item erased. FormID: {:x}, EditorID: {}", item.first->GetFormID(),
-                            clib_util::editorID::get_editorID(item.first));
+                          clib_util::editorID::get_editorID(item.first));
         }
     }
-    const auto mg_favorites = RE::MagicFavorites::GetSingleton()->spells;
-    const auto mg_hotkeys = GetMagicHotkeys();
-    for (auto& spell : mg_favorites) {
-		if (!spell) continue;
-        const auto spell_formid = spell->GetFormID();
-        int hotkey;
-        if (mg_hotkeys.contains(spell_formid)) hotkey = mg_hotkeys.at(spell_formid);
-		else hotkey = -1;
-        temp_mg_favs[spell_formid] = hotkey;
-		
-	}
-    RE::PlayerCharacter::GetSingleton()->VisitSpells(*this);
-    temp_mg_favs.clear();
+}
+
+void Manager::SyncFavorites_Spell(){
+    ENABLE_IF_NOT_UNINSTALLED
+    const auto& favorited_spells = RE::MagicFavorites::GetSingleton()->spells;
+    const auto hotkeyed_spells = GetMagicHotkeys();
+    CollectPlayerSpells();
+    if (temp_all_spells.empty()) {
+        logger::warn("SyncFavorites: No spells found.");
+        return;
+    }
+    for (auto& spell_formid : temp_all_spells) {
+        const auto spell = Utils::FunctionsSkyrim::GetFormByID<RE::SpellItem>(spell_formid);
+        if (!spell) continue;
+        logger::trace("Player has spell: {}", spell->GetName());
+        if (IsSpellFavorited(spell_formid, favorited_spells)) {
+            if (favorites.insert(spell_formid).second) {
+                logger::trace("Spell favorited. FormID: {:x}, EditorID: {}", spell_formid,
+                              clib_util::editorID::get_editorID(spell));
+            }
+            if (hotkeyed_spells.contains(spell_formid)) UpdateHotkeyMap(spell_formid, hotkeyed_spells.at(spell_formid));
+        } else if (RemoveFavorite(spell_formid)) {
+            logger::trace("Spell erased. FormID: {:x}, EditorID: {}", spell_formid,
+                          clib_util::editorID::get_editorID(spell));
+        }
+    }
+    temp_all_spells.clear();
 };
 
-// only used by container change event
-// for spells, I dont have anything for now
-void Manager::FavoriteCheck(const FormID formid) {
+void Manager::SyncFavorites() {
+    ENABLE_IF_NOT_UNINSTALLED
+    SyncFavorites_Bound();
+    SyncFavorites_Spell();
+}
+
+void Manager::FavoriteCheck_Bound(const FormID formid) {
     ENABLE_IF_NOT_UNINSTALLED
     if (!favorites.contains(formid)) return;
     const auto bound = Utils::FunctionsSkyrim::GetFormByID<RE::TESBoundObject>(formid);
     if (!bound) {
-		logger::warn("FavoriteCheck: Form not found. FormID: {}", formid);
+        logger::warn("FavoriteCheck_Bound: Form not found. FormID: {}", formid);
         RemoveFavorite(formid);
-		return;
-	}
+        return;
+    }
     Utils::FunctionsSkyrim::Inventory::FavoriteItem(bound, RE::PlayerCharacter::GetSingleton());
     ApplyHotkey(bound->GetFormID());
-
 }
 
-const bool Manager::RemoveFavorite(const FormID formid) {
-	const auto removed = favorites.erase(formid);
-	hotkey_map.erase(formid);
-    return removed;
+void Manager::FavoriteCheck_Spell(const FormID formid){
+    if (!favorites.contains(formid)) return;
+    const auto spell = Utils::FunctionsSkyrim::GetFormByID<RE::SpellItem>(formid);
+    if (!spell) {
+		logger::warn("FavoriteCheck_Spell: Form not found. FormID: {}", formid);
+		RemoveFavorite(formid);
+		return;
+	}
+    RE::MagicFavorites::GetSingleton()->SetFavorite(spell);
+	ApplyHotkey(formid);
+};
+
+void Manager::FavoriteCheck_Spell(){
+    CollectPlayerSpells();
+    if (temp_all_spells.empty()) {
+		logger::warn("FavoriteCheck_Spell: No spells found.");
+		return;
+	}
+    for (auto& spell_formid : temp_all_spells) {
+        FavoriteCheck_Spell(spell_formid);
+    }
+    temp_all_spells.clear();
 };
 
 void Manager::Reset() {
