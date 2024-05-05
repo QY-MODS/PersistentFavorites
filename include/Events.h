@@ -28,7 +28,6 @@ class myEventSink : public RE::BSTEventSink<RE::MenuOpenCloseEvent>,
     inline bool IsHotkeyEvent(const RE::BSFixedString& event_name) const;
 
 public:
-    using EventResult = RE::BSEventNotifyControl;
     static myEventSink* GetSingleton() {
         static myEventSink singleton;
         return &singleton;
