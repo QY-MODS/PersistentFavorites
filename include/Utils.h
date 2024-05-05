@@ -57,6 +57,10 @@ namespace Utils {
 
         namespace Menu {
             const bool IsOpen(RE::BSFixedString menu_name);
+
+            void OpenMenu(const std::string_view menuname);
+            
+            void CloseMenu(const std::string_view menuname);
         };
 
         namespace Inventory {

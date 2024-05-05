@@ -24,19 +24,19 @@ class Manager : public SaveLoadData, public RE::Actor::ForEachSpellVisitor {
 
     void UpdateHotkeyMap(const FormID spell_formid, const int a_hotkey);
 
-    const std::set<unsigned int> GetInventoryHotkeys() const;
+    const std::map<unsigned int, FormID> GetInventoryHotkeys() const;
 
     const std::map<FormID, unsigned int> GetMagicHotkeys() const;
     
-    const std::set<unsigned int> GetHotkeysInUse() const;
+    const std::map<unsigned int, FormID> GetHotkeysInUse() const;
 
-    const bool HotkeyIsInUse(const int hotkey) const;
+    const FormID HotkeyIsInUse(const FormID, const int a_hotkey) const;
 
     void HotkeySpell(RE::TESForm* form, const unsigned int hotkey);
 
     void ApplyHotkey(const FormID formid);
 
-    void SyncHotkeys_Bound();
+    void SyncHotkeys_Item();
 
     void SyncHotkeys_Spell();
 
@@ -56,19 +56,19 @@ public:
     
     const char* GetType() override { return "Manager"; }
 
-    void AddFavorites_Bound();
+    void AddFavorites_Item();
     
     void AddFavorites_Spell();
 
     void AddFavorites();
 
-    void SyncFavorites_Bound();
+    void SyncFavorites_Item();
 
     void SyncFavorites_Spell();
 
     void SyncFavorites();
 
-    void FavoriteCheck_Bound(const FormID formid);
+    void FavoriteCheck_Item(const FormID formid);
 
     void FavoriteCheck_Spell(const FormID formid);
 

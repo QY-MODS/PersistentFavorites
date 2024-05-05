@@ -17,13 +17,13 @@ class myEventSink : public RE::BSTEventSink<RE::MenuOpenCloseEvent>,
 
     virtual RE::BSEventNotifyControl ProcessEvent(RE::InputEvent* const* evns, RE::BSTEventSource<RE::InputEvent*>*) override;
     virtual RE::BSEventNotifyControl ProcessEvent(const RE::TESContainerChangedEvent* event,
-                                          RE::BSTEventSource<RE::TESContainerChangedEvent>*) override;;
+                                          RE::BSTEventSource<RE::TESContainerChangedEvent>*) override;
 
     virtual RE::BSEventNotifyControl ProcessEvent(const RE::MenuOpenCloseEvent* event,
-                                          RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override;;
+                                          RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override;
 
     virtual RE::BSEventNotifyControl ProcessEvent(const RE::SpellsLearned::Event* a_event,
-                                     RE::BSTEventSource<RE::SpellsLearned::Event>*) override;;
+                                     RE::BSTEventSource<RE::SpellsLearned::Event>*) override;
 
     inline bool IsHotkeyEvent(const RE::BSFixedString& event_name) const;
 

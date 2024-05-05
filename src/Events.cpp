@@ -16,7 +16,7 @@ RE::BSEventNotifyControl myEventSink::ProcessEvent(RE::InputEvent* const* evns, 
         }
         else if (userEvent == userevents->toggleFavorite || userEvent == userevents->yButton){
             M->SyncFavorites();
-        };
+        }
         return RE::BSEventNotifyControl::kContinue;
     }
     return RE::BSEventNotifyControl::kContinue;
@@ -26,7 +26,7 @@ RE::BSEventNotifyControl myEventSink::ProcessEvent(const RE::TESContainerChanged
                                                    RE::BSTEventSource<RE::TESContainerChangedEvent>*) {
     if (!event) return RE::BSEventNotifyControl::kContinue;
     if (event->newContainer!=player_refid) return RE::BSEventNotifyControl::kContinue;
-    M->FavoriteCheck_Bound(event->baseObj);
+    M->FavoriteCheck_Item(event->baseObj);
     return RE::BSEventNotifyControl::kContinue;
 }
 
@@ -35,25 +35,22 @@ RE::BSEventNotifyControl myEventSink::ProcessEvent(const RE::MenuOpenCloseEvent*
     if (!event) return RE::BSEventNotifyControl::kContinue;
     if (event->menuName != RE::FavoritesMenu::MENU_NAME &&
         event->menuName != RE::InventoryMenu::MENU_NAME &&
-        event->menuName != RE::ContainerMenu::MENU_NAME)
-        return RE::BSEventNotifyControl::kContinue;
+        event->menuName != RE::ContainerMenu::MENU_NAME &&
+        event->menuName != RE::MagicMenu::MENU_NAME) return RE::BSEventNotifyControl::kContinue;
+    logger::trace("Menu event: {}", event->menuName.c_str());
     M->AddFavorites();
+    if (event->opening) {
+        auto player_ref = RE::PlayerCharacter::GetSingleton()->AsReference();
+        SKSE::GetTaskInterface()->AddTask([player_ref]() { RE::SendUIMessage::SendInventoryUpdateMessage(player_ref, nullptr);
+		});
+    }
     return RE::BSEventNotifyControl::kContinue;
 }
 
 RE::BSEventNotifyControl myEventSink::ProcessEvent(const RE::SpellsLearned::Event* a_event,
                                              RE::BSTEventSource<RE::SpellsLearned::Event>*) {
     if (!a_event) return RE::BSEventNotifyControl::kContinue;
-    
-    if (REL::Module::IsAE()) {
-        logger::trace("Spell Learned.");
-        M->FavoriteCheck_Spell();
-    }
-    else {
-        logger::trace("Spell Learned: {}", a_event->spell->formID);
-		M->FavoriteCheck_Spell(a_event->spell->formID);
-	}
-
+    M->FavoriteCheck_Spell();
     return RE::BSEventNotifyControl::kContinue;
 }
 
